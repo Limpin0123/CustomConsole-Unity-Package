@@ -2,3 +2,4 @@
 ### First Release
 - Custom Attribute [CallableFunction] making functions callable from the consol
 - Custom Logger making colored and more visible logs
+- Custom Console Creatable via rigth clicking in hierarchie
