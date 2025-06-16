@@ -1,0 +1,12 @@
+{
+    "name": "com.limpin.customconsole",
+    "displayName": "Custom Console",
+    "version": "1.0.0",
+    "unity": "2019.1",
+    "description": "A custom console for Unity builds",
+    "keywords": [ "console", "debug", "tools", "custom console", "in build" ],
+    "category": "tools",
+    "author": {
+      "name": "Limpin"
+    }
+  }

@@ -1,0 +1,39 @@
+{
+    "name": "CustomConsole.Editor",
+    "rootNamespace": "CustomConsole.Editor",
+    "references": [
+        "GUID:68002dbc91f5bd1479942d6c9a6e64a8"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [
+        "Android",
+        "EmbeddedLinux",
+        "iOS",
+        "LinuxStandalone64",
+        "CloudRendering",
+        "macOSStandalone",
+        "Switch",
+        "PS4",
+        "PS5",
+        "QNX",
+        "ReservedCFE",
+        "tvOS",
+        "WSA",
+        "VisionOS",
+        "WebGL",
+        "WindowsStandalone32",
+        "WindowsStandalone64",
+        "WindowsStandalone32Server",
+        "WindowsStandalone64Server",
+        "GameCoreXboxOne",
+        "XboxOne",
+        "GameCoreScarlett"
+    ],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
