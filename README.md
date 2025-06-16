@@ -21,7 +21,7 @@ To install via Unity Package Manager:
 1. Go to package manager
 2. Select "Import from GIT URL" and past the following URL :
 ```json
-"https://github.com/Limpin0123/CustomConsole.git"
+https://github.com/Limpin0123/CustomConsole.git
 ```
 
 ## 🔧 Usage
