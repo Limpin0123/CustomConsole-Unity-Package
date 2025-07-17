@@ -89,7 +89,7 @@ namespace CustomConsole.Runtime.Console
             EntryUpdater correspondingCommand = _instancedCommandsHelper[_instancedCommandList[_selectedCommandIndex]];
             //Updating Highlight position
             Vector3 pos = commandHighLighter.position;
-            pos.y = correspondingCommand.selfRectTransform.position.y;
+            pos = correspondingCommand.selfRectTransform.position;
             commandHighLighter.position = pos;
             //Updating Highlight height
             Vector2 size = commandHighLighter.sizeDelta;
