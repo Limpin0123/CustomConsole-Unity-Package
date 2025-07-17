@@ -24,7 +24,11 @@ namespace CustomConsole.Runtime.Console
 
         private void TryCallingFunction(string userInput)
         {
-            //string[] splitInput = userInput.Split(' ');
+            if(helper._selectedCommandIndex >=0)
+            {
+                helper.UnselectEntry();
+                return;
+            }
             if (!TrySplittingCommandInput(userInput, out string[] splitInput)) return;
 
             string inputCommandName = splitInput[0];
@@ -48,17 +52,19 @@ namespace CustomConsole.Runtime.Console
                     else
                     {
                         Debug.Log($"Parameter conversion failed.");
+                        helper.SelectInputFieldAtLastPosition();
                     }
                 }
                 else
                 {
-                    Debug.Log(
-                        $"The amount of provided parameters ({inputParameters.Length}) doesn't correspond to the amount of needed parameters {methodParameters.Length}");
+                    Debug.Log($"The amount of provided parameters ({inputParameters.Length}) doesn't correspond to the amount of needed parameters {methodParameters.Length}");
+                    helper.SelectInputFieldAtLastPosition();
                 }
             }
             else
             {
                 Debug.Log($"The name of the function wasn't recognized : '{inputCommandName}'");
+                helper.SelectInputFieldAtLastPosition();
             }
         }
 

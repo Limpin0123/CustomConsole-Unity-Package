@@ -1,5 +1,5 @@
-## [1.0.0] - 2025-06-16
-### First Release
-- Custom Attribute [CallableFunction] making functions callable from the consol
-- Custom Logger making colored and more visible logs
-- Custom Console Creatable via rigth clicking in hierarchie
+## [1.0.1] - 2025-07-17
+### Quality off life Release
+- Better FunctionHelper Size Calculation, (content isn't crop anymore).
+- Better CConsole  creation tool showing all added components and a cancel option.
+- Helper commands can now be navigated using tab to select and navigate between them. Shift + tab deactivate unselect the selected command.

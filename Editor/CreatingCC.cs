@@ -1,5 +1,7 @@
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace CustomConsole.Editor
@@ -9,6 +11,19 @@ namespace CustomConsole.Editor
         [MenuItem("GameObject/CustomConsole/Custom Console", false, 10)]
         public static void CreatePrefab()
         {
+            EventSystem eventSystem = GameObject.FindObjectOfType<EventSystem>();
+            GameObject eventSystemGO = (eventSystem != null) ? eventSystem.gameObject : null;
+            GameObject selected = Selection.activeGameObject;
+            bool isCanvaSelected = selected != null && selected.GetComponent<Canvas>() != null && selected.scene == SceneManager.GetActiveScene();
+            string messageString = "Will be created :\n• A Custom Console";
+            if (!isCanvaSelected) messageString += "\n• A parent Canva";
+            if(eventSystem == null) messageString += "\n• An event system";
+            
+            if(!EditorUtility.DisplayDialog("Custom Console", messageString, "Proced", "Cancel"))
+            {
+                return;
+            }
+            
             string prefabPath = "Packages/com.limpin.customconsole/Prefabs/Custom Console.prefab";
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
 
@@ -18,7 +33,7 @@ namespace CustomConsole.Editor
                 return;
             }
             GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
-            if (Selection.activeGameObject != null && Selection.activeGameObject.GetComponent<Canvas>() != null)
+            if (isCanvaSelected)
             {
                 instance.transform.SetParent(Selection.activeGameObject.transform);
                 instance.transform.localPosition = Vector3.zero;
@@ -30,6 +45,12 @@ namespace CustomConsole.Editor
                 
                 Undo.RegisterCreatedObjectUndo(canvas, "Create Canvas");
                 instance.transform.SetParent(canvas.transform, false);
+            }
+
+            if (eventSystemGO == null)
+            {
+                eventSystemGO = new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
+                Undo.RegisterCreatedObjectUndo(eventSystemGO, "Create EventSystem");
             }
             
             if (instance != null)

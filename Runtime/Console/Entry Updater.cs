@@ -10,10 +10,13 @@ namespace CustomConsole.Runtime.Console
         [SerializeField] private TextMeshProUGUI textArea;
         [SerializeField] private Button clickableArea;
         private Action _buttonAction;
+        [HideInInspector]public RectTransform selfRectTransform;
+        Action forcedClickAction;
 
         private void Awake()
         {
             clickableArea.onClick.AddListener(() => _buttonAction());
+            selfRectTransform = GetComponent<RectTransform>();
         }
 
         public void UpdateEntryText(string text)
@@ -40,12 +43,18 @@ namespace CustomConsole.Runtime.Console
                 {
                     clickableArea.gameObject.SetActive(true);
                     _buttonAction = clickAction;
+                    forcedClickAction = clickAction;
                 }
             }
             catch (Exception e)
             {
                 throw new Exception($"Error initializing clickable area: {e.Message}");
             }
+        }
+
+        public void ForceAction()
+        {
+            forcedClickAction?.Invoke();
         }
 
         public void ShowEntry()

@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using System.Reflection;
 using TMPro;
 using System.Linq;
 using CustomConsole.Runtime.Logger;
+using UnityEngine.UI;
 
 namespace CustomConsole.Runtime.Console
 {
@@ -17,8 +19,13 @@ namespace CustomConsole.Runtime.Console
         [SerializeField] private Transform commandTooltipPrefab;
 
         public Dictionary<string, CallableCommand> commands = new Dictionary<string, CallableCommand>();
-        private Dictionary<string, Transform> _instancedCommandsHelper = new Dictionary<string, Transform>();
+        private Dictionary<string, EntryUpdater> _instancedCommandsHelper = new Dictionary<string, EntryUpdater>();
 
+        [SerializeField] private RectTransform commandHighLighter;
+        private List<string> _instancedCommandList = new List<string>();
+        [HideInInspector]public int _selectedCommandIndex = -1;
+        private InputAction tabAction;
+        private InputAction enterAction;
         public class CallableCommand
         {
             public MethodInfo method;
@@ -30,9 +37,81 @@ namespace CustomConsole.Runtime.Console
             FindCallableFunctions();
             UpdateScrollArea();
             inputField.onValueChanged.AddListener(UpdateFunctionHelper);
+            inputField.onDeselect.AddListener(str => UnselectEntry());
+            inputField.onEndEdit.AddListener(str => UnselectEntry());
             CanvasRectTransform = GetComponentInParent<RectTransform>();
+        }
 
+        private void OnEnable()
+        {
+            tabAction = new InputAction(
+                name: "TabPress",
+                type: InputActionType.Button,
+                binding: "<Keyboard>/tab"
+            );
 
+            tabAction.performed += ctx => OnTabPressed();
+            tabAction.Enable();
+
+            enterAction = new InputAction(
+                name: "EnterPress",
+                type: InputActionType.Button,
+                binding: "<Keyboard>/enter"
+            );
+            enterAction.performed += ctx => OnEnterPressed();
+            enterAction.Enable();
+        }
+
+        private void OnDisable()
+        {
+            tabAction.Disable();
+            tabAction.Dispose();
+            
+            enterAction.Disable();
+            enterAction.Dispose();
+        }
+
+        private void OnTabPressed()
+        {
+            if(!inputField.isFocused) return;
+            
+            if(_selectedCommandIndex + 1 >= _instancedCommandList.Count
+               || Keyboard.current.shiftKey.isPressed)
+            {
+                UnselectEntry();
+                return;
+            }
+            else
+            {
+                _selectedCommandIndex += 1;
+                if(!commandHighLighter.gameObject.activeSelf) commandHighLighter.gameObject.SetActive(true);
+            }
+            EntryUpdater correspondingCommand = _instancedCommandsHelper[_instancedCommandList[_selectedCommandIndex]];
+            //Updating Highlight position
+            Vector3 pos = commandHighLighter.position;
+            pos.y = correspondingCommand.selfRectTransform.position.y;
+            commandHighLighter.position = pos;
+            //Updating Highlight height
+            Vector2 size = commandHighLighter.sizeDelta;
+            size.y = correspondingCommand.selfRectTransform.rect.height;
+            commandHighLighter.sizeDelta = size;
+        }
+
+        private void OnEnterPressed()
+        {
+            if (_selectedCommandIndex >= 0
+                && inputField.isFocused)
+            {
+                EntryUpdater correspondingCommand = _instancedCommandsHelper[_instancedCommandList[_selectedCommandIndex]];
+                correspondingCommand.ForceAction();
+                //Unselection is made in Custom Console Command Caller, after preventing the function to be called
+            }
+        }
+
+        public void UnselectEntry()
+        {
+            _selectedCommandIndex = -1;
+            commandHighLighter.gameObject.SetActive(false);
         }
 
         /// <summary>
@@ -109,9 +188,15 @@ namespace CustomConsole.Runtime.Console
 
             FunctionAreaRectTransform.gameObject.SetActive(true);
             //displayed height is clamped to the canvas' height
+            LayoutRebuilder.ForceRebuildLayoutImmediate(FunctionAreaRectTransform);
+            float desiratedHeight = 0f;
+            foreach (EntryUpdater command in _instancedCommandsHelper.Values)
+            {
+                desiratedHeight += command.selfRectTransform.rect.height;
+            }
             float yOffset =
-                Mathf.Clamp(_instancedCommandsHelper.Count * 36.1f, 0,
-                    CanvasRectTransform.rect.height); //size of a function helper is 36.1
+                Mathf.Clamp(desiratedHeight, 0,
+                    CanvasRectTransform.rect.height);
             FunctionAreaRectTransform.offsetMax = new Vector2(FunctionAreaRectTransform.offsetMax.x, yOffset);
         }
 
@@ -166,7 +251,7 @@ namespace CustomConsole.Runtime.Console
             //destroying commandTooltip that aren't correct anymore
             for (int i = _instancedCommandsHelper.Count - 1; i >= 0; i--)
             {
-                KeyValuePair<string, Transform> commandTooltip = _instancedCommandsHelper.ElementAt(i);
+                KeyValuePair<string, EntryUpdater> commandTooltip = _instancedCommandsHelper.ElementAt(i);
                 if (!correspondingCommands.Contains(commandTooltip.Key))
                 {
                     _instancedCommandsHelper.Remove(commandTooltip.Key);
@@ -180,9 +265,8 @@ namespace CustomConsole.Runtime.Console
                 if (!_instancedCommandsHelper.ContainsKey(commandTooltipName))
                 {
                     Transform commandTooltip = Instantiate(commandTooltipPrefab, contentTransform).transform;
-                    _instancedCommandsHelper.Add(commandTooltipName, commandTooltip);
-
                     EntryUpdater entry = commandTooltip.gameObject.GetComponent<EntryUpdater>();
+                    _instancedCommandsHelper.Add(commandTooltipName, entry);
 
                     SplitFunctionNameAndBehaviour(commandTooltipName, out string functionName, out string objectName);
                     string commandDisplayName =
@@ -204,6 +288,20 @@ namespace CustomConsole.Runtime.Console
             }
 
             UpdateScrollArea();
+            RefreshCommandList();
+        }
+
+        /// <summary>
+        /// refresh the list of all shown commands
+        /// </summary>
+        void RefreshCommandList()
+        {
+            List<string> newList = _instancedCommandsHelper.Keys.ToList();
+            if (_selectedCommandIndex >= newList.Count)
+            {
+                _selectedCommandIndex = -1;
+            }
+            _instancedCommandList = newList;
         }
 
         /// <summary>
@@ -265,6 +363,7 @@ namespace CustomConsole.Runtime.Console
 
         public void SelectInputFieldAtLastPosition()
         {
+            inputField.Select();
             inputField.ActivateInputField();
             inputField.caretPosition = inputField.text.Length;
             inputField.selectionAnchorPosition = inputField.text.Length;
