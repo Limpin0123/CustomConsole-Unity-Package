@@ -197,6 +197,10 @@ namespace CustomConsole.Runtime.Console
                     {
                         parameters[i] = color;
                     }
+                    else if (parametersInfo[i].ParameterType.IsEnum && Enum.TryParse(targetType, userParameterValues[i], out object enumValue))
+                    {
+                        parameters[i] = enumValue;
+                    }
                     else if(parametersInfo[i].ParameterType.FullName == "Unity.Netcode.ServerRpcParams"
                             || parametersInfo[i].ParameterType.FullName == "Unity.Netcode.ClientRpcParams")
                     {

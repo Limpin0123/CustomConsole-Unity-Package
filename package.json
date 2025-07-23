@@ -1,7 +1,7 @@
 {
     "name": "com.limpin.customconsole",
     "displayName": "Custom Console",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "unity": "2020.3",
     "dependencies": {
       "com.unity.inputsystem": "1.5.1"

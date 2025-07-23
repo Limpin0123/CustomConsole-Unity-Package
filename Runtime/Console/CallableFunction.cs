@@ -10,7 +10,7 @@ namespace CustomConsole.Runtime.Console
     /// ⚠ only parameters with those type of parameters are supported :
     /// <c>string</c>, <c>int</c>, <c>float</c>,
     /// <c>bool</c>, <c>Vector2</c>, <c>Vector3</c>,
-    /// <c>Color</c>, <c>Enum</c>, <c>RPC Parameters</c>
+    /// <c>Color</c>, <c>Enum</c>, <c>RPC Parameters</c>, <c>Enum</c>
     /// </summary>
     [System.AttributeUsage(AttributeTargets.Method)]
     public class CallableFunctionAttribute : Attribute
