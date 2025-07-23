@@ -163,12 +163,21 @@ namespace CustomConsole.Runtime.Console
             };
             foreach (ParameterInfo parameter in parameters)
             {
-                if (!supportedTypes.Contains(parameter.ParameterType) && !parameter.ParameterType.IsEnum)
-                {
-                    CustomLogger.CCErrorLog(
-                        $"\nThe function : <u>{method.Name}</u> in script : <u>{target.name.ToUpper()}</u> is not eligible for CallableFunction attribute.");
-                    return false;
+                if(supportedTypes.Contains(parameter.ParameterType) || parameter.ParameterType.IsEnum) {
+                    continue;
                 }
+                
+                //support RPC Parameters type
+                string parameterTypeFullName = parameter.ParameterType.FullName;
+                if (parameterTypeFullName == "Unity.Netcode.ServerRpcParams" ||
+                    parameterTypeFullName == "Unity.Netcode.ClientRpcParams"){
+                    continue;
+                }
+                    
+                
+                CustomLogger.CCErrorLog(
+                    $"\nThe function : <u>{method.Name}</u> in script : <u>{target.name.ToUpper()}</u> is not eligible for CallableFunction attribute.");
+                return false;
             }
 
             return true;

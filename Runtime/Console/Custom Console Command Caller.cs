@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using CustomConsole.Runtime.Logger;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -177,6 +178,19 @@ namespace CustomConsole.Runtime.Console
                     else if (TryStringToColorConversion(userParameterValues[i], out object color))
                     {
                         parameters[i] = color;
+                    }
+                    else if(parametersInfo[i].ParameterType.FullName == "Unity.Netcode.ServerRpcParams"
+                            || parametersInfo[i].ParameterType.FullName == "Unity.Netcode.ClientRpcParams")
+                    {
+                        try
+                        {
+                            parameters[i] = Activator.CreateInstance(parametersInfo[i].ParameterType);
+                        }
+                        catch (Exception e)
+                        {
+                            CustomLogger.CCErrorLog($"Cannot create an instance of type {parametersInfo[i].ParameterType.FullName} : {e.Message}");
+                            return false;
+                        }
                     }
                 }
                 catch (Exception e)

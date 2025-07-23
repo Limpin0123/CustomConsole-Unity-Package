@@ -8,7 +8,9 @@ namespace CustomConsole.Runtime.Console
     /// The <c> functionName</c> must not contain spaces.
     ///
     /// ⚠ only parameters with those type of parameters are supported :
-    /// <c>string</c>, <c>int</c>, <c>float</c>, <c>bool</c>, <c>Vector2</c>, <c>Vector3</c>, <c>Color</c>, <c>Enum</c>
+    /// <c>string</c>, <c>int</c>, <c>float</c>,
+    /// <c>bool</c>, <c>Vector2</c>, <c>Vector3</c>,
+    /// <c>Color</c>, <c>Enum</c>, <c>RPC Parameters</c>
     /// </summary>
     [System.AttributeUsage(AttributeTargets.Method)]
     public class CallableFunctionAttribute : Attribute
