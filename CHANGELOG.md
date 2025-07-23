@@ -1,5 +1,4 @@
-## [1.1.0] - 2025-07-17
+## [1.1.1] - 2025-07-23
 ### Quality off life Release
-- Better FunctionHelper Size Calculation, (content isn't crop anymore).
-- Better CConsole  creation tool showing all added components and a cancel option.
-- Helper commands can now be navigated using tab to select and navigate between them. Shift + tab deactivate unselect the selected command.
+- ServerRPCParam and ClientRPCParam type can now be used in CCOnsole if used has optional parameter (the "default" value will be used).
+- Optionnal parameters are now supported (not mandatory to write a value).

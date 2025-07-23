@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using CustomConsole.Runtime.Logger;
+using PlasticPipe.PlasticProtocol.Messages;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,6 +15,14 @@ namespace CustomConsole.Runtime.Console
     {
         private CustomConsoleCommandHelper helper;
         [SerializeField] private Toggle isPersistentCommandToggle;
+
+        private readonly Dictionary<Type, Func<string, object>> TypeParser = new Dictionary<Type, Func<string, object>>
+        {
+            {typeof(string), s => s.Trim('"')},
+            {typeof(int), s => int.Parse(s)},
+            {typeof(float), s=> float.Parse(s, CultureInfo.InvariantCulture)},
+            {typeof(bool), s => bool.Parse(s)}
+        };
 
         private void Awake()
         {
@@ -39,8 +48,26 @@ namespace CustomConsole.Runtime.Console
             {
                 CustomConsoleCommandHelper.CallableCommand commandInfo = helper.commands[inputCommandName];
                 ParameterInfo[] methodParameters = commandInfo.method.GetParameters();
-                if (methodParameters.Length == inputParameters.Length)
+                int obligatoryParameterCount = 0;
+                foreach (ParameterInfo parameter in methodParameters)
                 {
+                    if(!parameter.IsOptional) obligatoryParameterCount++;
+                }
+                
+                if (obligatoryParameterCount <= inputParameters.Length)
+                {
+                    int missingParameterCount = methodParameters.Length - inputParameters.Length;
+                    if(missingParameterCount > 0)
+                    {
+                        int missingParameterIndex = inputParameters.Length;
+                        Array.Resize(ref inputParameters, inputParameters.Length + missingParameterCount);
+                        for (int i = missingParameterIndex; i < methodParameters.Length; i++)
+                        {
+                            object defaultValue = methodParameters[i].DefaultValue;
+                            inputParameters[i] = defaultValue != null ? defaultValue.ToString() : "null";
+                        }
+                    }
+                    
                     if (TryCastStringToParameters(methodParameters, inputParameters, out object[] convertedParameters))
                     {
                         commandInfo.method.Invoke(commandInfo.target, convertedParameters);
@@ -58,7 +85,7 @@ namespace CustomConsole.Runtime.Console
                 }
                 else
                 {
-                    Debug.Log($"The amount of provided parameters ({inputParameters.Length}) doesn't correspond to the amount of needed parameters {methodParameters.Length}");
+                    Debug.Log($"The amount of provided parameters ({inputParameters.Length}) doesn't correspond to the amount of obligatory parameters {methodParameters.Length}");
                     helper.SelectInputFieldAtLastPosition();
                 }
             }
@@ -155,27 +182,19 @@ namespace CustomConsole.Runtime.Console
             {
                 try
                 {
-                    if (parametersInfo[i].ParameterType == typeof(string))
+                    Type targetType = parametersInfo[i].ParameterType;
+                    //manage string, int, float and bool type
+                    if (TypeParser.TryGetValue(targetType, out var parser))
                     {
-                        parameters[i] = userParameterValues[i].Trim('"');
+                        parameters[i] = parser(userParameterValues[i]);
                     }
-                    else if (parametersInfo[i].ParameterType == typeof(int))
-                    {
-                        parameters[i] = int.Parse(userParameterValues[i]);
-                    }
-                    else if (parametersInfo[i].ParameterType == typeof(float))
-                    {
-                        parameters[i] = float.Parse(userParameterValues[i], CultureInfo.InvariantCulture);
-                    }
-                    else if (parametersInfo[i].ParameterType == typeof(bool))
-                    {
-                        parameters[i] = bool.Parse(userParameterValues[i]);
-                    }
-                    else if (TryStringToVectorConversion(userParameterValues[i], out object vector))
+                    else if ((parametersInfo[i].ParameterType == typeof(Vector2)
+                              || parametersInfo[i].ParameterType == typeof(Vector3))
+                             && TryStringToVectorConversion(userParameterValues[i], out object vector))
                     {
                         parameters[i] = vector;
                     }
-                    else if (TryStringToColorConversion(userParameterValues[i], out object color))
+                    else if (parametersInfo[i].ParameterType == typeof(Color) && TryStringToColorConversion(userParameterValues[i], out object color))
                     {
                         parameters[i] = color;
                     }
@@ -191,6 +210,11 @@ namespace CustomConsole.Runtime.Console
                             CustomLogger.CCErrorLog($"Cannot create an instance of type {parametersInfo[i].ParameterType.FullName} : {e.Message}");
                             return false;
                         }
+                    }
+                    else
+                    {
+                        CustomLogger.CCErrorLog($"Parameters conversion failed");
+                        return false;
                     }
                 }
                 catch (Exception e)
@@ -229,7 +253,7 @@ namespace CustomConsole.Runtime.Console
             }
             catch (Exception e)
             {
-                Debug.Log($"Conversion to vector failed :\n{e}");
+                //conversion to vector failed
                 vector = null;
                 return false;
             }

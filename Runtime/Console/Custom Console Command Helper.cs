@@ -362,10 +362,15 @@ namespace CustomConsole.Runtime.Console
             };
             if (type.IsEnum)
                 return type.Name;
-            else
-            {
-                return typeToString[type];
-            }
+            if (typeToString.TryGetValue(type, out string alias))
+                return alias;
+            
+            if (type.FullName == "Unity.Netcode.ServerRpcParams")
+                return "ServerRpcParams <size=10>(only \"default\" values supported)</size>";
+            if (type.FullName == "Unity.Netcode.ClientRpcParams")
+                return "ClientRpcParams <size=10>(only \"default\" values supported)</size>";
+
+            return type.Name + "UNSUPPORTED TYPE";
         }
 
         #endregion
