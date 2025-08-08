@@ -6,6 +6,7 @@ using System.Reflection;
 using TMPro;
 using System.Linq;
 using CustomConsole.Runtime.Logger;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace CustomConsole.Runtime.Console
@@ -13,7 +14,8 @@ namespace CustomConsole.Runtime.Console
     public class CustomConsoleCommandHelper : MonoBehaviour
     {
         public TMP_InputField inputField;
-        [SerializeField] private RectTransform FunctionAreaRectTransform;
+        [SerializeField] private RectTransform functionHelperRectTransform;
+        [SerializeField] private RectTransform bottomToolRectTransform;
         private RectTransform CanvasRectTransform;
         [SerializeField] private Transform contentTransform;
         [SerializeField] private Transform commandTooltipPrefab;
@@ -191,13 +193,13 @@ namespace CustomConsole.Runtime.Console
             //if there is no function shown
             if (_instancedCommandsHelper.Count == 0)
             {
-                FunctionAreaRectTransform.gameObject.SetActive(false);
+                functionHelperRectTransform.gameObject.SetActive(false);
                 return;
             }
 
-            FunctionAreaRectTransform.gameObject.SetActive(true);
+            functionHelperRectTransform.gameObject.SetActive(true);
             //displayed height is clamped to the canvas' height
-            LayoutRebuilder.ForceRebuildLayoutImmediate(FunctionAreaRectTransform);
+            LayoutRebuilder.ForceRebuildLayoutImmediate(functionHelperRectTransform);
             float desiratedHeight = 0f;
             foreach (EntryUpdater command in _instancedCommandsHelper.Values)
             {
@@ -206,7 +208,8 @@ namespace CustomConsole.Runtime.Console
             float yOffset =
                 Mathf.Clamp(desiratedHeight, 0,
                     CanvasRectTransform.rect.height);
-            FunctionAreaRectTransform.offsetMax = new Vector2(FunctionAreaRectTransform.offsetMax.x, yOffset);
+            functionHelperRectTransform.offsetMax = new Vector2(functionHelperRectTransform.offsetMax.x, yOffset);
+            functionHelperRectTransform.offsetMin = new Vector2(functionHelperRectTransform.offsetMin.x, bottomToolRectTransform.rect.height + 5);
         }
 
         /// <summary>

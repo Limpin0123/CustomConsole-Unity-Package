@@ -153,7 +153,8 @@ namespace CustomConsole.Runtime.Console
                 (type == LogType.Warning) ? new Color(1, 0.75f, 0.03f) : new Color(1, 0.43f, 0.25f);
             _logs[logID].EntryUpdater.UpdateEntryText(logString, color);
             //Action won't be added if is not clickable
-            _logs[logID].EntryUpdater.UpdateClickableArea(() => GetAndOpenLogPath(stackTrace), type != LogType.Log);
+            bool isClickableLog = type != LogType.Log || logString.Contains("[CustomLogger]");
+            _logs[logID].EntryUpdater.UpdateClickableArea(() => GetAndOpenLogPath(stackTrace), isClickableLog);
         }
 
         private void UpdateLogCounter()

@@ -1,4 +1,7 @@
+using System.IO;
 using UnityEngine;
+using System.Text.RegularExpressions;
+using CustomConsole.Runtime.Logger;
 
 namespace CustomConsole.Runtime.Console
 {
@@ -8,40 +11,31 @@ namespace CustomConsole.Runtime.Console
         [HideInInspector] public string path = "";
         [HideInInspector] public int line = -1;
 
-        public bool TryToGetPathAndLine(string stactTrace, out string path, out int line)
+        public bool TryToGetPathAndLine(string stackTrace, out string path, out int line)
         {
             path = "";
             line = -1;
-
-            string[] lines = stactTrace.Split('\n');
-            for (int i = 0; i < lines.Length; i++)
+            
+            MatchCollection matches = Regex.Matches(stackTrace, @"^(?!.*CustomLogger).*\(at ([^<>""\\|?*@:]+:?[^<>""\\|?*@:]+\.cs):(\d+)\)", RegexOptions.Multiline);
+            foreach (Match match in matches)
             {
-                if (lines[i].Contains("(at ") && !lines[i].Contains("CustomLogger:"))
+                if (match.Success)
                 {
-                    int startIndex = lines[i].IndexOf("(at ") + 4;
-                    int endIndex = lines[i].IndexOf(")", startIndex);
-
-                    string subString = lines[i].Substring(startIndex, endIndex - startIndex);
-
-                    int lastColonIndex = subString.LastIndexOf(':');
-                    path = subString.Substring(0, lastColonIndex);
-
-                    if (int.TryParse(subString.Substring(lastColonIndex + 1),
+                    path = match.Groups[1].Value;
+                    if (int.TryParse(match.Groups[2].Value,
                             out line)) //try to transform the string in an int
                     {
                         return true;
                     }
-
-                    return false;
                 }
             }
-
             return false;
         }
 
         public void OpenFile(string filePath, int line)
         {
 #if UNITY_EDITOR
+            if(!File.Exists(filePath)) CustomLogger.CCErrorLog($"file path doesn't exis {filePath}t");
             UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(filePath, line);
 #else
         string path = "";

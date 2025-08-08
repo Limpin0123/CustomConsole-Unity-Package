@@ -97,6 +97,18 @@ namespace CustomConsole.Runtime.Console
 
         bool TrySplittingCommandInput(string commandInput, out string[] splitInput)
         {
+            if(commandInput.Length <= 0)
+            {
+                splitInput = null;
+                return false;
+            }
+            else if (!commandInput.StartsWith("/"))
+            {
+                Debug.Log($"<size=120%><u>Say : </u></size>{commandInput}");
+                splitInput = null;
+                return false;
+            }
+            
             //get index of all spaces in the string
             List<int> spacesIndex = commandInput
                 .Select((c, i) => new { Char = c, Index = i })
